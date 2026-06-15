@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Parte de Compañía Antonio Nariño</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+    --azul:#0b1f3a;
+    --azul-claro:#163b6b;
+    --dorado:#d4af37;
+    --verde:#28a745;
+    --amarillo:#ffc107;
+    --rojo:#dc3545;
+    --blanco:#ffffff;
+    --gris:#f4f6f9;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins',sans-serif;
+}
+
+body{
+    background:linear-gradient(135deg,#eef2f7,#dce6f2);
+    padding:20px;
+}
+
+header{
+    background:rgba(11,31,58,0.95);
+    backdrop-filter:blur(10px);
+    color:white;
+    padding:25px;
+    border-radius:20px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    box-shadow:0 10px 30px rgba(0,0,0,0.2);
+    margin-bottom:25px;
+}
+
+header h1{
+    font-size:28px;
+}
+
+#fecha{
+    font-size:14px;
+    color:var(--dorado);
+}
+
+.container{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(420px,1fr));
+    gap:20px;
+}
+
+.card{
+    background:rgba(255,255,255,0.95);
+    border-radius:20px;
+    padding:20px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.1);
+    transition:0.3s;
+    border-left:6px solid var(--dorado);
+}
+
+.card:hover{
+    transform:translateY(-8px);
+    box-shadow:0 15px 35px rgba(0,0,0,0.15);
+}
+
+.card h2{
+    color:var(--azul);
+    margin-bottom:15px;
+}
+
+.input-group{
+    margin-bottom:12px;
+}
+
+label{
+    font-size:14px;
+    font-weight:600;
+    color:#333;
+}
+
+input{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:10px;
+    background:#f1f3f5;
+    margin-top:5px;
+    transition:0.3s;
+}
+
+input:focus{
+    outline:none;
+    background:white;
+    box-shadow:0 0 0 2px var(--azul-claro);
+}
+
+.status{
+    margin-top:10px;
+    padding:10px;
+    border-radius:10px;
+    text-align:center;
+    font-weight:bold;
+    color:white;
+}
+
+.dashboard{
+    display:flex;
+    gap:20px;
+    margin:20px 0;
+}
+
+.box{
+    flex:1;
+    padding:20px;
+    border-radius:20px;
+    color:white;
+    text-align:center;
+    font-weight:bold;
+    box-shadow:0 8px 20px rgba(0,0,0,0.1);
+}
+
+.efectiva{
+    background:linear-gradient(135deg,#163b6b,#0b1f3a);
+}
+
+.disponible{
+    background:linear-gradient(135deg,#28a745,#1e7e34);
+}
+
+button{
+    width:100%;
+    padding:18px;
+    border:none;
+    border-radius:15px;
+    background:linear-gradient(135deg,var(--azul),var(--azul-claro));
+    color:white;
+    font-size:17px;
+    font-weight:bold;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+button:hover{
+    transform:scale(1.02);
+}
+
+.resumen{
+    margin-top:25px;
+    background:white;
+    border-radius:20px;
+    padding:20px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.1);
+}
+
+#resultado{
+    white-space:pre-line;
+    line-height:1.7;
+}
+</style>
+</head>
+<body>
+
+<header>
+    <div>
+        <h1>COMPAÑÍA ANTONIO NARIÑO</h1>
+        <p>Sistema de Parte Operativo</p>
+    </div>
+    <div id="fecha"></div>
+</header>
+
+<div class="dashboard">
+    <div class="box efectiva">
+        Fuerza Efectiva
+        <h2 id="totalEfectiva">0</h2>
+    </div>
+
+    <div class="box disponible">
+        Fuerza Disponible
+        <h2 id="totalDisponible">0</h2>
+    </div>
+</div>
+
+<div class="container" id="secciones"></div>
+
+<button onclick="generarParte()">GENERAR PARTE GENERAL</button>
+
+<div class="resumen">
+    <h2>Resumen Operacional</h2>
+    <div id="resultado"></div>
+</div>
+
+<script>
+function actualizarFecha(){
+    const ahora = new Date();
+    document.getElementById("fecha").innerHTML =
+        ahora.toLocaleDateString() + "<br>" + ahora.toLocaleTimeString();
+}
+setInterval(actualizarFecha,1000);
+
+const novedades = ["excusados","otras","fuera","retirados","sanidad","banda","aseo"];
+const contenedor = document.getElementById("secciones");
+
+for(let i=1;i<=6;i++){
+    let html = `
+    <div class="card">
+        <h2>Sección ${i}</h2>
+
+        <div class="input-group">
+            <label>Fuerza Efectiva</label>
+            <input type="number" id="efectiva${i}" oninput="calcular()">
+        </div>
+
+        <div class="input-group">
+            <label>En Servicio</label>
+            <input type="number" id="servicio${i}">
+        </div>
+    `;
+
+    novedades.forEach(n=>{
+        html += `
+        <div class="input-group">
+            <label>${n.toUpperCase()}</label>
+            <input type="number" id="${n}${i}" oninput="calcular()">
+        </div>`;
+    });
+
+    html += `
+        <div class="input-group">
+            <label>Fuerza Disponible</label>
+            <input type="number" id="disponible${i}" readonly>
+        </div>
+
+        <div class="status" id="estado${i}">Sin calcular</div>
+    </div>
+    `;
+
+    contenedor.innerHTML += html;
+}
+
+function calcular(){
+    let totalEfectiva=0;
+    let totalDisponible=0;
+
+    for(let i=1;i<=6;i++){
+        let efectiva = Number(document.getElementById(`efectiva${i}`).value)||0;
+        let totalNovedades = 0;
+
+        novedades.forEach(n=>{
+            totalNovedades += Number(document.getElementById(`${n}${i}`).value)||0;
+        });
+
+        let disponible = efectiva-totalNovedades;
+        if(disponible<0) disponible=0;
+
+        document.getElementById(`disponible${i}`).value = disponible;
+
+        totalEfectiva += efectiva;
+        totalDisponible += disponible;
+
+        let estado = document.getElementById(`estado${i}`);
+        let porcentaje = efectiva ? (disponible/efectiva)*100 : 0;
+
+        if(porcentaje >= 80){
+            estado.style.background="#28a745";
+            estado.innerText="ALTA DISPONIBILIDAD";
+        }else if(porcentaje >= 50){
+            estado.style.background="#ffc107";
+            estado.innerText="DISPONIBILIDAD MEDIA";
+        }else{
+            estado.style.background="#dc3545";
+            estado.innerText="BAJA DISPONIBILIDAD";
+        }
+    }
+
+    document.getElementById("totalEfectiva").innerText = totalEfectiva;
+    document.getElementById("totalDisponible").innerText = totalDisponible;
+}
+
+function generarParte(){
+    let texto = "";
+
+    for(let i=1;i<=6;i++){
+        texto += `SECCIÓN ${i}\n`;
+        texto += `Efectiva: ${document.getElementById(`efectiva${i}`).value||0}\n`;
+        texto += `Disponible: ${document.getElementById(`disponible${i}`).value||0}\n`;
+        texto += `En servicio: ${document.getElementById(`servicio${i}`).value||0}\n`;
+        texto += `-----------------------------\n`;
+    }
+
+    document.getElementById("resultado").innerText = texto;
+}
+</script>
+
+</body>
+</html>
